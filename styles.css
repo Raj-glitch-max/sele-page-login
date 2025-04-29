@@ -1,14 +1,181 @@
+/* styles.css */
+
+/* Aurora gradient background */
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f0f0f0;
+}
+
+/* Centered glass-style form */
+form {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Form title */
+form p {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+/* Input fields */
+form input[type="email"],
+form input[type="password"],
+form input[type="text"] {
+  width: 100%;
+  padding: 0.8rem;
+  margin: 0.5rem 0;
+  border: none;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #f0f0f0;
+  font-size: 1rem;
+}
+
+form input[type="email"]::placeholder,
+form input[type="password"]::placeholder {
+  color: #ccc;
+}
+
+/* Submit button */
+form input[type="submit"] {
+  width: 100%;
+  padding: 0.8rem;
+  margin-top: 1rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+form input[type="submit"]:hover {
+  background: linear-gradient(to right, #556cd6, #5e3f99);
+}
+
+/* Error message */
+form p[style] {
+  color: #ff6b6b !important;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  form {
+    margin: 0 20px;
+    padding: 1.5rem;
+  }
+}
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
   font-family: 'SF Pro Text', 'SF Pro Icons', system-ui, 'Helvetica Neue', 'Helvetica';
   font-size: 1rem;
-  padding: 20px 20px 60px;
-  max-width: 550px;
-  margin: 0 auto;
+  background: #2b0a45; /* Dark violet background */
+  color: #fff; /* White text */
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px;
 }
 
-form label {
+h1, h2, p {
+  text-align: center;
+  color: #f4e7ff; /* Light purple color for headings */
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+button, .button {
+  background: #9b4dff; /* Aurora Violet */
+  color: #fff;
+  border: none;
+  padding: 12px 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button:hover, .button:hover {
+  background-color: #7e33cc; /* Slightly darker violet on hover */
+  transform: scale(1.05); /* Button hover effect */
+}
+
+button:focus, .button:focus {
+  outline: none;
+}
+
+/* Home Container */
+.home-container {
   display: flex;
-  justify-content: space-between;
-  max-width: 220px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  max-width: 600px;
+  width: 100%;
+  margin-top: 50px;
+}
+
+.welcome-box {
+  background: rgba(0, 0, 0, 0.5); /* Slightly transparent background for the content box */
+  padding: 40px 30px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.welcome-box h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.welcome-box p {
+  font-size: 1.2rem;
+  color: #b2a4ff; /* Light purple color for description text */
+  margin-bottom: 30px;
+}
+
+/* Button Container */
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.button-container p {
+  color: #b2a4ff; /* Light text color for 'or' */
 }

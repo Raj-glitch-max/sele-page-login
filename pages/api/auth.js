@@ -1,11 +1,11 @@
-const MongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const jwtSecret = 'SUPERSECRETE20220';
+import { MongoClient } from 'mongodb';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import assert from 'assert';
 
+const jwtSecret = 'SUPERSECRETE20220';
 const saltRounds = 10;
-const url = 'mongodb://localhost:27017';
+const url = 'mongodb+srv://raj-p:898rdp1242@deepfake-detection.hza0bt7.mongodb.net/?retryWrites=true&w=majority&appName=deepfake-detection'; // Use MongoDB Atlas URL if deploying to the cloud
 const dbName = 'simple-login-db';
 
 const client = new MongoClient(url, {
@@ -13,67 +13,54 @@ const client = new MongoClient(url, {
   useUnifiedTopology: true,
 });
 
-function findUser(db, email, callback) {
+async function findUser(db, email) {
   const collection = db.collection('user');
-  collection.findOne({email}, callback);
+  return collection.findOne({ email });
 }
 
-function authUser(db, email, password, hash, callback) {
-  const collection = db.collection('user');
-  bcrypt.compare(password, hash, callback);
+async function authUser(db, email, password, hash) {
+  const match = await bcrypt.compare(password, hash);
+  return match;
 }
 
-export default (req, res) => {
+export default async (req, res) => {
   if (req.method === 'POST') {
-    //login
+    // login
     try {
       assert.notEqual(null, req.body.email, 'Email required');
       assert.notEqual(null, req.body.password, 'Password required');
     } catch (bodyError) {
-      res.status(403).send(bodyError.message);
+      return res.status(403).send(bodyError.message);
     }
 
-    client.connect(function(err) {
-      assert.equal(null, err);
-      console.log('Connected to MongoDB server =>');
+    try {
+      await client.connect();
+      console.log('Connected to MongoDB server');
       const db = client.db(dbName);
-      const email = req.body.email;
-      const password = req.body.password;
+      const { email, password } = req.body;
 
-      findUser(db, email, function(err, user) {
-        if (err) {
-          res.status(500).json({error: true, message: 'Error finding User'});
-          return;
-        }
-        if (!user) {
-          res.status(404).json({error: true, message: 'User not found'});
-          return;
-        } else {
-          authUser(db, email, password, user.password, function(err, match) {
-            if (err) {
-              res.status(500).json({error: true, message: 'Auth Failed'});
-            }
-            if (match) {
-              const token = jwt.sign(
-                {userId: user.userId, email: user.email},
-                jwtSecret,
-                {
-                  expiresIn: 3000, //50 minutes
-                },
-              );
-              res.status(200).json({token});
-              return;
-            } else {
-              res.status(401).json({error: true, message: 'Auth Failed'});
-              return;
-            }
-          });
-        }
-      });
-    });
+      const user = await findUser(db, email);
+      if (!user) {
+        return res.status(404).json({ error: true, message: 'User not found' });
+      }
+
+      const match = await authUser(db, email, password, user.password);
+      if (match) {
+        const token = jwt.sign(
+          { userId: user.userId, email: user.email },
+          jwtSecret,
+          { expiresIn: '1h' } // Token expiry time
+        );
+        res.status(200).json({ token });
+      } else {
+        res.status(401).json({ error: true, message: 'Auth Failed' });
+      }
+    } catch (err) {
+      res.status(500).json({ error: true, message: 'Server Error' });
+    } finally {
+      await client.close();
+    }
   } else {
-    // Handle any other HTTP method
-    res.statusCode = 401;
-    res.end();
+    res.status(401).end(); // Handle any other HTTP method
   }
 };

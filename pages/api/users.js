@@ -1,90 +1,41 @@
-const MongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
-const bcrypt = require('bcrypt');
-const v4 = require('uuid').v4;
-const jwt = require('jsonwebtoken');
-const jwtSecret = 'SUPERSECRETE20220';
+import { MongoClient } from 'mongodb';
+import bcrypt from 'bcrypt';
+import assert from 'assert';
 
-const saltRounds = 10;
-const url = 'mongodb://localhost:27017';
+const url = 'mongodb+srv://raj-p:898rdp1242@deepfake-detection.hza0bt7.mongodb.net/?retryWrites=true&w=majority&appName=deepfake-detection';
 const dbName = 'simple-login-db';
-
 const client = new MongoClient(url, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-function findUser(db, email, callback) {
-  const collection = db.collection('user');
-  collection.findOne({email}, callback);
-}
-
-function createUser(db, email, password, callback) {
-  const collection = db.collection('user');
-  bcrypt.hash(password, saltRounds, function(err, hash) {
-    // Store hash in your password DB.
-    collection.insertOne(
-      {
-        userId: v4(),
-        email,
-        password: hash,
-      },
-      function(err, userCreated) {
-        assert.equal(err, null);
-        callback(userCreated);
-      },
-    );
-  });
-}
-
-export default (req, res) => {
+export default async (req, res) => {
   if (req.method === 'POST') {
-    // signup
     try {
-      assert.notEqual(null, req.body.email, 'Email required');
-      assert.notEqual(null, req.body.password, 'Password required');
-    } catch (bodyError) {
-      res.status(403).json({error: true, message: bodyError.message});
-    }
+      assert(req.body.email, 'Email is required');
+      assert(req.body.password, 'Password is required');
 
-    // verify email does not exist already
-    client.connect(function(err) {
-      assert.equal(null, err);
-      console.log('Connected to MongoDB server =>');
+      const { email, password } = req.body;
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await client.connect();
       const db = client.db(dbName);
-      const email = req.body.email;
-      const password = req.body.password;
+      const collection = db.collection('user');
 
-      findUser(db, email, function(err, user) {
-        if (err) {
-          res.status(500).json({error: true, message: 'Error finding User'});
-          return;
-        }
-        if (!user) {
-          // proceed to Create
-          createUser(db, email, password, function(creationResult) {
-            if (creationResult.ops.length === 1) {
-              const user = creationResult.ops[0];
-              const token = jwt.sign(
-                {userId: user.userId, email: user.email},
-                jwtSecret,
-                {
-                  expiresIn: 3000, //50 minutes
-                },
-              );
-              res.status(200).json({token});
-              return;
-            }
-          });
-        } else {
-          // User exists
-          res.status(403).json({error: true, message: 'Email exists'});
-          return;
-        }
-      });
-    });
+      const existingUser = await collection.findOne({ email });
+      if (existingUser) {
+        return res.status(409).json({ error: true, message: 'User already exists' });
+      }
+
+      await collection.insertOne({ email, password: hashedPassword });
+      res.status(201).json({ message: 'User created successfully' });
+    } catch (error) {
+      console.error('Signup API Error:', error); // Log full error
+      res.status(500).json({ error: true, message: 'Server error', details: error.message });
+    } finally {
+      await client.close();
+    }
   } else {
-    // Handle any other HTTP method
-    res.status(200).json({users: ['John Doe']});
+    res.status(405).end(); // Method Not Allowed
   }
 };

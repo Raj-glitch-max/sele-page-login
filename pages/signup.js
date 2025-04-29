@@ -1,68 +1,47 @@
-import React, {useState} from 'react';
-import Router from 'next/router';
-import cookie from 'js-cookie';
+// pages/signup.js
+import { useState } from 'react'
+import Router from 'next/router'
+import cookie from 'js-cookie'
 
-const Signup = () => {
-  const [signupError, setSignupError] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+export default function Signup() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    fetch('/api/users', {
+  async function handleSubmit(e) {
+    e.preventDefault()
+    const res = await fetch('/api/users', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data && data.error) {
-          setSignupError(data.message);
-        }
-        if (data && data.token) {
-          //set cookie
-          cookie.set('token', data.token, {expires: 2});
-          Router.push('/');
-        }
-      });
+    if (res.ok) {
+      // Optionally log them in immediately:
+      const { token } = await res.json()
+      cookie.set('token', token, { expires: 1 })
+      Router.push('/')
+    } else {
+      alert('Signup failed')
+    }
   }
+
   return (
     <form onSubmit={handleSubmit}>
-      <p>Sign Up</p>
-      <label htmlFor="email">
-        email
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          name="email"
-          type="email"
-        />
-      </label>
-
-      <br />
-
-      <label for="password">
-        password
-        <input
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          name="password"
-          type="password"
-        />
-      </label>
-
-      <br />
-
-      <input type="submit" value="Submit" />
-      {signupError && <p style={{color: 'red'}}>{signupError}</p>}
+      <h1>Sign Up</h1>
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email"
+        required
+      />
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        required
+      />
+      <button type="submit">Sign Up</button>
     </form>
-  );
-};
-
-export default Signup;
+  )
+}

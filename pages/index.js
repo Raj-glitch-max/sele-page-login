@@ -1,49 +1,49 @@
-import Head from 'next/head';
-import fetch from 'isomorphic-unfetch';
-import useSWR from 'swr';
-import Link from 'next/link';
-import cookie from 'js-cookie';
+// pages/index.js
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+import Head from 'next/head'
+import fetch from 'isomorphic-unfetch'
+import useSWR from 'swr'
+import Link from 'next/link'
+import cookie from 'js-cookie'
 
-function Home() {
-  const {data, revalidate} = useSWR('/api/me', async function(args) {
-    const res = await fetch(args);
-    return res.json();
-  });
-  if (!data) return <h1>Loading...</h1>;
-  let loggedIn = false;
-  if (data.email) {
-    loggedIn = true;
-  }
+export default function Home() {
+  const router = useRouter()
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!cookie.get('token')) {
+      router.replace('/login')
+    }
+  }, [router])
+
+  const { data, error, mutate } = useSWR(
+    () => cookie.get('token') && '/api/me',
+    (url) => fetch(url).then((res) => res.json())
+  )
+
+  if (!cookie.get('token')) return null   // wait for redirect
+  if (error) return <p>Error loading user</p>
+  if (!data)  return <p>Loading…</p>
+
   return (
     <div>
-      <Head>
-        <title>Welcome to landing page</title>
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-      </Head>
-      <h1>Simplest login</h1>
-
-      <h2>Proudly using Next.js, Mongodb and deployed with Now</h2>
-      {loggedIn && (
+      {data.email ? (
         <>
-          <p>Welcome {data.email}!</p>
-          <button
-            onClick={() => {
-              cookie.remove('token');
-              revalidate();
-            }}>
+          <h1>Welcome back, {data.email}!</h1>
+          <button onClick={() => { cookie.remove('token'); mutate() }}>
             Logout
           </button>
         </>
-      )}
-      {!loggedIn && (
+      ) : (
         <>
-          <Link href="/login">Login</Link>
-          <p>or</p>
-          <Link href="/signup">Sign Up</Link>
+          <h1>Welcome to Aurora Login</h1>
+          <div>
+            <Link href="/login"><a>Login</a></Link> or{' '}
+            <Link href="/signup"><a>Sign Up</a></Link>
+          </div>
         </>
       )}
     </div>
-  );
+  )
 }
-
-export default Home;

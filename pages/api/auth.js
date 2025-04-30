@@ -3,9 +3,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import assert from 'assert';
 
-const jwtSecret = 'SUPERSECRETE20220';
+const jwtSecret = process.env.JWT_SECRET;
 const saltRounds = 10;
-const url = 'mongodb+srv://raj-p:898rdp1242@deepfake-detection.hza0bt7.mongodb.net/?retryWrites=true&w=majority&appName=deepfake-detection'; // Use MongoDB Atlas URL if deploying to the cloud
+const url = process.env.MONGO_URI;  // Use MongoDB URI from .env
 const dbName = 'simple-login-db';
 
 const client = new MongoClient(url, {
